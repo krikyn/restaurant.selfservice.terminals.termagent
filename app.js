@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer';
 import sharp from 'sharp';
 import {getCpuLoad} from "./util.js";
 import os from "os";
+import {PASSWORD, USERNAME} from "./consts.js";
 
 export default class App {
   browser = null;
@@ -11,6 +12,7 @@ export default class App {
     cpu: 0,
     memoryUsed: 0,
     memoryTotal: 0,
+    uptime: 0,
   };
 
   constructor(sender) {
@@ -22,27 +24,37 @@ export default class App {
     setInterval(this.sendScreenshot.bind(this), 600000)
   }
 
+  // no throw
   async sendScreenshot() {
     if (!this.page) {
       return
     }
 
-    await this.page.screenshot({path: 'screenshot.jpg', captureBeyondViewport: false});
+    try {
+      await this.page.screenshot({path: 'screenshot.jpg', captureBeyondViewport: false});
 
-    const resizedImageBuf = await sharp('screenshot.jpg')
-      .resize(108, 192)
-      .toBuffer();
+      const resizedImageBuf = await sharp('screenshot.jpg')
+        .resize(108, 192)
+        .toBuffer();
 
-    this.sender.send('/app/terminalScreen', resizedImageBuf.toString('base64'));
-    console.log('Screenshot sent');
+      this.sender.send('/app/terminalScreen', resizedImageBuf.toString('base64'));
+      console.log('Screenshot sent');
+    } catch (e) {
+      console.error('Failed to send screenshot', e);
+    }
   }
 
+  // no throw
   async close() {
     if (!this.browser) {
       throw new Error('Browser is already closed')
     }
 
-    await this.browser.close();
+    try {
+      await this.browser.close();
+    } catch (e) {
+      console.error('Failed to close browser', e);
+    }
 
     this.browser = null
     this.page = null;
@@ -51,6 +63,7 @@ export default class App {
     await this.sendState();
 
     console.log('App closed');
+
   }
 
   async open(url) {
@@ -61,7 +74,7 @@ export default class App {
     try {
       this.browser = await puppeteer.launch({
         headless: false,
-        args: ['--kiosk'],
+        // args: ['--kiosk'],
         defaultViewport: {
           width: 1080,
           height: 1920
@@ -70,6 +83,20 @@ export default class App {
 
       this.page = await this.browser.newPage();
 
+      this.page
+        .on('console', message =>
+          console.log(`PAGE: ${message.type().toUpperCase()} ${message.text()}`))
+        .on('pageerror', ({message}) => console.log(`PAGE: ${message}`))
+        .on('requestfailed', request =>
+          console.log(`PAGE: ${request.failure().errorText} ${request.url()}`))
+        .on('close', this.close.bind(this))
+
+      await this.page.evaluateOnNewDocument((data) => {
+        window.AgentLoginData = data;
+      }, {
+        user: USERNAME,
+        pass: PASSWORD
+      });
       await this.page.goto(url);
 
       this.page.on("framenavigated", this.sendScreenshot.bind(this));
@@ -97,6 +124,7 @@ export default class App {
     console.log('App refreshed');
   }
 
+  // no throw
   sendState() {
     const cpuLoad = getCpuLoad()
     const freeMemory = os.freemem();
@@ -106,7 +134,9 @@ export default class App {
     this.state.cpu = cpuLoad;
     this.state.memoryTotal = totalMemory;
     this.state.memoryUsed = usedMemory;
+    this.state.uptime = process.uptime();
 
+    // no throw
     this.sender.send('/app/terminalStatus', JSON.stringify(this.state))
   }
 }

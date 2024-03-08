@@ -3,25 +3,86 @@ import {Client} from '@stomp/stompjs'
 import {WebSocket} from 'ws';
 
 import App from "./app.js";
+import {BASE_WS_URL, FRONTEND_URL} from "./consts.js";
+import {fetchToken} from "./api.js";
+import {queuePilotTask} from "./pilot.js";
 
 Object.assign(global, {WebSocket});
-
-const APP_URL = process.env.APP_URL || "http://localhost:9000";
-const BASE_SERVER_URL = process.env.SERVER_URL || "ws://localhost:8080/ws"
-const TOKEN = process.env.TOKEN
-const SERVER_URL = `${BASE_SERVER_URL}?token=${TOKEN}`
 
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
+let client;
+let app;
+
+async function main() {
+  const token = await fetchToken();
+  const brokerURL = `${BASE_WS_URL}?token=${token}`;
+
+  client = new Client({
+    brokerURL
+  })
+
+  client.onConnect = () => {
+    console.log('Connected')
+    client.subscribe('/topic/commands', async (msg) => {
+      try {
+        console.log('Received message: ' + msg.body)
+        send('/app/terminalLog', {
+          level: 'info',
+          text: 'Received message ' + msg.body
+        })
+
+        await handleMessage(msg.body)
+
+        send('/app/terminalLog', {
+          level: 'info',
+          text: 'OK'
+        })
+        console.log('OK')
+      } catch (e) {
+        console.error('Failed to execute command', e);
+        send('/app/terminalLog', {
+          level: 'error',
+          text: e?.toString() ?? 'unknown error'
+        })
+      }
+    })
+    app.sendState();
+  }
+
+  client.onDisconnect = (frame) => {
+    console.error('Disconnected')
+  }
+
+  client.onWebSocketError = (frame) => {
+    console.error('WebSocket error: ', frame)
+  }
+
+  client.onStompError = (frame) => {
+    console.error('Stomp error: ', frame)
+  }
+
+  client.reconnect_delay = 5000;
+  client.activate()
+
+  app = new App({
+    send
+  });
+
+  app.init();
+  console.log('App started')
+}
+
 async function handleMessage(msg) {
-  const {cmd} = JSON.parse(msg)
+  const json = JSON.parse(msg)
+  const {cmd} = json
 
   switch (cmd) {
     case 'open':
-      await app.open(APP_URL);
+      await app.open(FRONTEND_URL);
       break;
     case 'close':
       await app.close();
@@ -29,20 +90,27 @@ async function handleMessage(msg) {
     case 'refresh':
       await app.refresh();
       break;
+    case 'pilot':
+      const {id, args} = json
+      queuePilotTask(args).then((result) => {
+        this.sender.send('/app/pilotResult', JSON.stringify({
+          id,
+          ...result
+        }))
+      })
+      break
     case 'kill':
-      await app.close();
       console.log('Kill requested');
-      gracefulExit();
+      try {
+        await app.close();
+      } finally {
+        await gracefulExit();
+      }
       break;
     default:
       throw new Error(`Invalid command: ${cmd}`)
   }
 }
-
-
-const client = new Client({
-  brokerURL: SERVER_URL
-})
 
 function send(destination, body) {
   try {
@@ -51,53 +119,6 @@ function send(destination, body) {
     console.error(`Failed to send message ${JSON.stringify(body)} to destination ${destination}`)
   }
 }
-
-client.onConnect = () => {
-  console.log('Connected')
-  client.subscribe('/topic/commands', async (msg) => {
-    try {
-      console.log('Received message: ' + msg.body)
-      send('/app/terminalLog', {
-        level: 'info',
-        text: 'Received message ' + msg.body
-      })
-
-      await handleMessage(msg.body)
-
-      send('/app/terminalLog', {
-        level: 'info',
-        text: 'OK'
-      })
-      console.log('OK')
-    } catch (e) {
-      console.error('Failed to execute command', e);
-      send('/app/terminalLog', {
-        level: 'error',
-        text: e?.toString() ?? 'unknown error'
-      })
-    }
-  })
-  app.sendState();
-}
-
-client.onDisconnect = (frame) => {
-  console.error('Disconnected')
-}
-
-client.onWebSocketError = (frame) => {
-  console.error('WebSocket error: ', frame)
-}
-
-client.onStompError = (frame) => {
-  console.error('Stomp error: ', frame)
-}
-
-client.reconnect_delay = 5000;
-client.activate()
-
-const app = new App({
-  send
-});
 
 async function gracefulExit() {
   console.log("Shutting down...");
@@ -141,5 +162,8 @@ rl.on('close', function () {
   });
 });
 
-app.init();
-console.log('App started')
+main().catch((e) => {
+  console.error(e);
+  gracefulExit().then(() => {
+  });
+})
