@@ -93,7 +93,7 @@ async function handleMessage(msg) {
     case 'pilot':
       const {args, payload} = json
       queuePilotTask(args).then((result) => {
-        this.sender.send('/app/pilotResult', JSON.stringify({
+        send('/app/pilotResult', JSON.stringify({
           payload,
           ...result
         }))

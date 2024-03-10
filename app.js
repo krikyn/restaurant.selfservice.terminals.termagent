@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import sharp from 'sharp';
 import {getCpuLoad} from "./util.js";
 import os from "os";
-import {PASSWORD, USERNAME} from "./consts.js";
+import {AGENT_DEBUG, PASSWORD, USERNAME} from "./consts.js";
 
 export default class App {
   browser = null;
@@ -74,10 +74,11 @@ export default class App {
     try {
       this.browser = await puppeteer.launch({
         headless: false,
-        // args: ['--kiosk'],
+        devtools: AGENT_DEBUG,
+        args: AGENT_DEBUG ? [] : ['--kiosk'],
         defaultViewport: {
           width: 1080,
-          height: 1920
+          height: 1920,
         }
       })
 

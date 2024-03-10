@@ -11,9 +11,19 @@ const queue = new PQueue({concurrency: 1});
 // no throw
 async function executePilotTask(args) {
   try {
-    await Promise.all([unlink(PILOT_E_FILE_PATH), unlink(PILOT_P_FILE_PATH)]);
+    try {
+      await unlink(PILOT_E_FILE_PATH);
+    } catch (ignored) {
+    }
 
-    const result = await execa(PILOT_EXECUTABLE_PATH, args);
+    try {
+      await unlink(PILOT_P_FILE_PATH);
+    } catch (ignored) {
+    }
+
+    const result = await execa(PILOT_EXECUTABLE_PATH, args, {
+      all: true,
+    });
     console.log(`Executed sb_pilot with args ${args}: ${result}`);
 
     const {all, message, exitCode} = result;
