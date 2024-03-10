@@ -91,10 +91,10 @@ async function handleMessage(msg) {
       await app.refresh();
       break;
     case 'pilot':
-      const {id, args} = json
+      const {args, payload} = json
       queuePilotTask(args).then((result) => {
         this.sender.send('/app/pilotResult', JSON.stringify({
-          id,
+          payload,
           ...result
         }))
       })

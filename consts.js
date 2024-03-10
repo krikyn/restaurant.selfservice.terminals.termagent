@@ -10,5 +10,5 @@ export const USERNAME = process.env.USERNAME || "test";
 export const PASSWORD = process.env.PASSWORD || "test";
 export const PILOT_FOLDER_PATH = path.resolve(process.env.PILOT_FOLDER_PATH || ".");
 export const PILOT_EXECUTABLE_PATH = path.join(PILOT_FOLDER_PATH, "sb_pilot.exe");
-export const PILOT_E_FILE_PATH = path.join(PILOT_FOLDER_PATH, "e.txt");
-export const PILOT_P_FILE_PATH = path.join(PILOT_FOLDER_PATH, "p.txt");
+export const PILOT_E_FILE_PATH = path.join(PILOT_FOLDER_PATH, "e");
+export const PILOT_P_FILE_PATH = path.join(PILOT_FOLDER_PATH, "p");

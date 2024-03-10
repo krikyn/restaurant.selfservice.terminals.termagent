@@ -1,4 +1,6 @@
 import os from "os";
+import fs from "node:fs/promises";
+import timers from "node:timers/promises";
 
 let lastTicks = {
   idle: 0,
@@ -25,13 +27,23 @@ export function getCpuLoad() {
   return 1 - (idleDelta / totalDelta)
 }
 
-export function getMemoryLoad() {
-  const freeMem = os.freemem()
-  const totalMem = os.totalmem()
+export async function waitForFile(
+  filePath,
+  {timeout = 30_000, delay = 200} = {}
+) {
+  const tid = setTimeout(() => {
+    const msg = `Timeout of ${timeout} ms exceeded waiting for ${filePath}`;
+    throw Error(msg);
+  }, timeout);
 
-  return (totalMem - freeMem) / totalMem
-}
+  for (; ;) {
+    try {
+      const file = await fs.readFile(filePath, {encoding: "utf-8"});
+      clearTimeout(tid);
+      return file;
+    } catch (err) {
+    }
 
-export function getUsedMemoryBytes() {
-  return os.totalmem() - os.freemem()
+    await timers.setTimeout(delay);
+  }
 }
