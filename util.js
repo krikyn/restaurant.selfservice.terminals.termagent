@@ -27,21 +27,23 @@ export function getCpuLoad() {
   return 1 - (idleDelta / totalDelta)
 }
 
-export async function waitForFile(
-  filePath,
+export async function waitForFiles(
+  filePaths,
   {timeout = 30_000, delay = 200} = {}
 ) {
   const tid = setTimeout(() => {
-    const msg = `Timeout of ${timeout} ms exceeded waiting for ${filePath}`;
+    const msg = `Timeout of ${timeout} ms exceeded waiting for ${filePaths}`;
     throw Error(msg);
   }, timeout);
 
-  for (; ;) {
-    try {
-      const file = await fs.readFile(filePath, {encoding: "utf-8"});
-      clearTimeout(tid);
-      return file;
-    } catch (err) {
+  while (true) {
+    for (const filePath of filePaths) {
+      try {
+        const file = await fs.readFile(filePath, {encoding: "utf-8"});
+        clearTimeout(tid);
+        return file;
+      } catch (err) {
+      }
     }
 
     await timers.setTimeout(delay);

@@ -2,8 +2,8 @@ import PQueue from 'p-queue';
 import {execa} from 'execa';
 import {readFile, unlink} from 'node:fs/promises';
 import {PILOT_E_FILE_PATH, PILOT_EXECUTABLE_PATH, PILOT_P_FILE_PATH} from "./consts.js";
-import {waitForFile} from "./util.js";
 import timers from "node:timers/promises";
+import {waitForFiles} from "./util.js";
 
 
 const queue = new PQueue({concurrency: 1});
@@ -21,6 +21,7 @@ async function executePilotTask(args) {
     } catch (ignored) {
     }
 
+    console.log(`Executing sb_pilot with args ${args}...`);
     const result = await execa(PILOT_EXECUTABLE_PATH, args, {
       all: true,
     });
@@ -28,7 +29,7 @@ async function executePilotTask(args) {
 
     const {all, message, exitCode} = result;
 
-    await waitForFile(PILOT_E_FILE_PATH, {
+    await waitForFiles([PILOT_E_FILE_PATH, PILOT_P_FILE_PATH], {
       timeout: 300000,
       delay: 333
     });
