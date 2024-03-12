@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import sharp from 'sharp';
 import {getCpuLoad} from "./util.js";
 import os from "os";
-import {AGENT_DEBUG, PASSWORD, USERNAME} from "./consts.js";
+import {AGENT_DEBUG, FRONTEND_URL, PASSWORD, USERNAME} from "./consts.js";
 
 export default class App {
   browser = null;
@@ -66,7 +66,7 @@ export default class App {
 
   }
 
-  async open(url) {
+  async open() {
     if (this.browser) {
       throw new Error('Browser is already open')
     }
@@ -98,7 +98,7 @@ export default class App {
         user: USERNAME,
         pass: PASSWORD
       });
-      await this.page.goto(url);
+      await this.page.goto(FRONTEND_URL);
 
       this.page.on("framenavigated", this.sendScreenshot.bind(this));
     } catch (e) {
@@ -120,6 +120,7 @@ export default class App {
     }
 
     await this.page.reload();
+    await this.page.goto(FRONTEND_URL);
     await this.sendState();
 
     console.log('App refreshed');

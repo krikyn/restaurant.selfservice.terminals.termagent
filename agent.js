@@ -3,7 +3,7 @@ import {Client} from '@stomp/stompjs'
 import {WebSocket} from 'ws';
 
 import App from "./app.js";
-import {BASE_WS_URL, FRONTEND_URL} from "./consts.js";
+import {BASE_WS_URL} from "./consts.js";
 import {fetchToken} from "./api.js";
 import {queuePilotTask} from "./pilot.js";
 
@@ -73,7 +73,8 @@ async function main() {
   });
 
   app.init();
-  console.log('App started')
+  await app.open();
+  console.log('Agent started');
 }
 
 async function handleMessage(msg) {
@@ -82,7 +83,7 @@ async function handleMessage(msg) {
 
   switch (cmd) {
     case 'open':
-      await app.open(FRONTEND_URL);
+      await app.open();
       break;
     case 'close':
       await app.close();
