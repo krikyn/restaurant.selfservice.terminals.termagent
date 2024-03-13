@@ -1,5 +1,4 @@
 import puppeteer from 'puppeteer';
-import sharp from 'sharp';
 import {getCpuLoad} from "./util.js";
 import os from "os";
 import {AGENT_DEBUG, FRONTEND_URL, PASSWORD, USERNAME} from "./consts.js";
@@ -20,28 +19,7 @@ export default class App {
   }
 
   init() {
-    setInterval(this.sendState.bind(this), 5000)
-    setInterval(this.sendScreenshot.bind(this), 600000)
-  }
-
-  // no throw
-  async sendScreenshot() {
-    if (!this.page) {
-      return
-    }
-
-    try {
-      await this.page.screenshot({path: 'screenshot.jpg', captureBeyondViewport: false});
-
-      const resizedImageBuf = await sharp('screenshot.jpg')
-        .resize(108, 192)
-        .toBuffer();
-
-      this.sender.send('/app/terminalScreen', resizedImageBuf.toString('base64'));
-      console.log('Screenshot sent');
-    } catch (e) {
-      console.error('Failed to send screenshot', e);
-    }
+    setInterval(this.sendState.bind(this), 10000)
   }
 
   // no throw
@@ -99,8 +77,6 @@ export default class App {
         pass: PASSWORD
       });
       await this.page.goto(FRONTEND_URL);
-
-      this.page.on("framenavigated", this.sendScreenshot.bind(this));
     } catch (e) {
       await this.close();
       throw e;
@@ -109,7 +85,6 @@ export default class App {
     this.state.open = true;
 
     await this.sendState();
-    await this.sendScreenshot();
 
     console.log('App opened');
   }

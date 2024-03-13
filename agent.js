@@ -30,24 +30,10 @@ async function main() {
     client.subscribe('/topic/commands', async (msg) => {
       try {
         console.log('Received message: ' + msg.body)
-        send('/app/terminalLog', {
-          level: 'info',
-          text: 'Received message ' + msg.body
-        })
-
         await handleMessage(msg.body)
-
-        send('/app/terminalLog', {
-          level: 'info',
-          text: 'OK'
-        })
         console.log('OK')
       } catch (e) {
         console.error('Failed to execute command', e);
-        send('/app/terminalLog', {
-          level: 'error',
-          text: e?.toString() ?? 'unknown error'
-        })
       }
     })
     app.sendState();
