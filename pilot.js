@@ -1,5 +1,5 @@
 import PQueue from 'p-queue';
-import {decode} from 'iconv-lite'
+import iconv from 'iconv-lite'
 import {execa} from 'execa';
 import {readFile, unlink} from 'node:fs/promises';
 import {PILOT_E_FILE_PATH, PILOT_EXECUTABLE_PATH, PILOT_P_FILE_PATH} from "./consts.js";
@@ -43,7 +43,7 @@ async function executePilotTask(args) {
     let eText = null;
     try {
       const buffer = await readFile(PILOT_E_FILE_PATH);
-      eText = decode(buffer, 'cp866');
+      eText = iconv.decode(buffer, 'cp866');
     } catch (ignored) {
     }
 
@@ -52,7 +52,7 @@ async function executePilotTask(args) {
     let pText = null;
     try {
       const buffer = await readFile(PILOT_P_FILE_PATH);
-      pText = decode(buffer, 'cp866');
+      pText = iconv.decode(buffer, 'cp866');
     } catch (ignored) {
     }
 
