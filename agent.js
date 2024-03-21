@@ -1,11 +1,14 @@
 import {createInterface} from 'readline';
 import {Client} from '@stomp/stompjs'
 import {WebSocket} from 'ws';
+import os from "os";
+import AutoGitUpdate from 'auto-git-update';
 
 import App from "./app.js";
-import {BASE_WS_URL} from "./consts.js";
+import {AGENT_DEBUG, BASE_WS_URL} from "./consts.js";
 import {fetchToken} from "./api.js";
 import {queuePilotTask} from "./pilot.js";
+
 
 Object.assign(global, {WebSocket});
 
@@ -17,7 +20,22 @@ const rl = createInterface({
 let client;
 let app;
 
+async function updateSelf() {
+  const updater = new AutoGitUpdate({
+    repository: 'https://git.tchvrs.com/touchverse/termagent',
+    branch: 'main',
+    tempLocation: os.tmpdir(),
+    exitOnComplete: true
+  });
+
+  await updater.autoUpdate();
+}
+
 async function main() {
+  if (AGENT_DEBUG) {
+    await updateSelf()
+  }
+
   const token = await fetchToken();
   const brokerURL = `${BASE_WS_URL}?token=${token}`;
 
