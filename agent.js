@@ -35,7 +35,7 @@ async function main() {
   if (!AGENT_DEBUG) {
     await updateSelf()
 
-    setInterval(updateSelf, 300000)
+    setInterval(updateSelf, 60 * 60 * 1000)
   }
 
   const token = await fetchToken();
