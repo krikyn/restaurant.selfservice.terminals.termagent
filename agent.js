@@ -32,7 +32,7 @@ async function updateSelf() {
 }
 
 async function main() {
-  if (AGENT_DEBUG) {
+  if (!AGENT_DEBUG) {
     await updateSelf()
   }
 
