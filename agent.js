@@ -5,7 +5,7 @@ import os from "os";
 import AutoGitUpdate from 'auto-git-update';
 
 import App from "./app.js";
-import {AGENT_DEBUG, BASE_WS_URL} from "./consts.js";
+import {AGENT_DEBUG, BASE_WS_URL, GIT_BRANCH, GIT_REPOSITORY, UPDATE_INTERVAL} from "./consts.js";
 import {fetchToken} from "./api.js";
 import {queuePilotTask} from "./pilot.js";
 
@@ -22,8 +22,8 @@ let app;
 
 async function updateSelf() {
   const updater = new AutoGitUpdate({
-    repository: 'https://git.tchvrs.com/touchverse/termagent',
-    branch: 'main',
+    repository: GIT_REPOSITORY,
+    branch: GIT_BRANCH,
     tempLocation: os.tmpdir(),
     exitOnComplete: true
   });
@@ -35,7 +35,7 @@ async function main() {
   if (!AGENT_DEBUG) {
     await updateSelf()
 
-    setInterval(updateSelf, 60 * 60 * 1000)
+    setInterval(updateSelf, UPDATE_INTERVAL)
   }
 
   const token = await fetchToken();
