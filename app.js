@@ -53,7 +53,9 @@ export default class App {
       this.browser = await puppeteer.launch({
         headless: false,
         devtools: AGENT_DEBUG,
-        args: AGENT_DEBUG ? [] : ['--kiosk'],
+        args: AGENT_DEBUG ? [] : ['--kiosk', '--disable-pinch', '--overscroll-history-navigation=0'],
+        userDataDir:"C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data",
+        executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
         defaultViewport: {
           width: 1080,
           height: 1920,
