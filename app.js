@@ -54,6 +54,7 @@ export default class App {
         headless: false,
         devtools: AGENT_DEBUG,
         args: AGENT_DEBUG ? [] : ['--kiosk', '--disable-pinch', '--overscroll-history-navigation=0'],
+        ignoreDefaultArgs: ['--enable-automation'],
         userDataDir:"C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data",
         executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
         defaultViewport: {
