@@ -16,6 +16,7 @@ export const PILOT_FOLDER_PATH = path.resolve(process.env.PILOT_FOLDER_PATH || "
 export const PILOT_EXECUTABLE_PATH = path.join(PILOT_FOLDER_PATH, "sb_pilot.exe");
 export const PILOT_E_FILE_PATH = path.join(PILOT_FOLDER_PATH, "e");
 export const PILOT_P_FILE_PATH = path.join(PILOT_FOLDER_PATH, "p");
+export const SCANNER_ENABLED = process.env.SCANNER_ENABLED === "true";
 export const SCANNER_PATH = process.env.SCANNER_PATH || "COM3";
 export const SCANNER_BAUD_RATE = Number(process.env.SCANNER_BAUD_RATE) || 9600;
 export const SCANNER_DELIMITER = (process.env.SCANNER_DELIMITER || "\\r\\n")
