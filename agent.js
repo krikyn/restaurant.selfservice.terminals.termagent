@@ -5,18 +5,9 @@ import os from "os";
 import AutoGitUpdate from 'auto-git-update';
 
 import App from "./app.js";
-import {
-  AGENT_DEBUG,
-  BASE_WS_URL,
-  GIT_BRANCH,
-  GIT_REPOSITORY, SCANNER_BAUD_RATE,
-  SCANNER_DELIMITER,
-  SCANNER_PATH,
-  UPDATE_INTERVAL
-} from "./consts.js";
+import {AGENT_DEBUG, BASE_WS_URL, GIT_BRANCH, GIT_REPOSITORY, UPDATE_INTERVAL} from "./consts.js";
 import {fetchToken} from "./api.js";
 import {queuePilotTask} from "./pilot.js";
-import {ReadlineParser, SerialPort} from "serialport";
 
 
 Object.assign(global, {WebSocket});
@@ -80,16 +71,6 @@ async function main() {
     console.error('Stomp error: ', frame)
   }
 
-  const scannerPort = new SerialPort({ path: SCANNER_PATH, baudRate: SCANNER_BAUD_RATE });
-  scannerPort.on('error', (err) => {
-    console.error('Scanner Error: ', err.message);
-  });
-  scannerPort.on('open', () => {
-    console.log('Scanner port opened!');
-  });
-
-  const scannerParser = scannerPort.pipe(new ReadlineParser({ delimiter: SCANNER_DELIMITER }));
-
   client.reconnect_delay = 5000;
   client.activate()
 
@@ -97,10 +78,20 @@ async function main() {
     send
   });
 
-  scannerParser.on('data', (data) => {
-    console.log(`Scanner QR code: ${data}`);
-    // send('/app/scannerData', JSON.stringify(data))
-  });
+  // const scannerPort = new SerialPort({ path: SCANNER_PATH, baudRate: SCANNER_BAUD_RATE });
+  // scannerPort.on('error', (err) => {
+  //   console.error('Scanner Error: ', err.message);
+  // });
+  // scannerPort.on('open', () => {
+  //   console.log('Scanner port opened!');
+  // });
+
+  // const scannerParser = scannerPort.pipe(new ReadlineParser({ delimiter: SCANNER_DELIMITER }));
+
+  // scannerParser.on('data', (data) => {
+  //   console.log(`Scanner QR code: ${data}`);
+  //   // send('/app/scannerData', JSON.stringify(data))
+  // });
 
   app.init();
   await app.open();
