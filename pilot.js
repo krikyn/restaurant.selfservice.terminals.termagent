@@ -37,7 +37,6 @@ async function executePilotTask(args) {
 
     await waitForFiles([PILOT_E_FILE_PATH, PILOT_P_FILE_PATH], {
       timeout: 300000,
-      delay: 333
     });
 
     let eText = null;

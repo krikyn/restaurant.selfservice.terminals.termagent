@@ -29,23 +29,22 @@ export function getCpuLoad() {
 
 export async function waitForFiles(
   filePaths,
-  {timeout = 30_000, delay = 200} = {}
+  {timeout = 30_000, delay = 333} = {}
 ) {
-  const tid = setTimeout(() => {
-    const msg = `Timeout of ${timeout} ms exceeded waiting for ${filePaths}`;
-    throw Error(msg);
-  }, timeout);
+  const startTime = Date.now()
 
-  while (true) {
+  do {
     for (const filePath of filePaths) {
       try {
         const file = await fs.readFile(filePath, {encoding: "utf-8"});
-        clearTimeout(tid);
         return file;
       } catch (err) {
       }
     }
 
     await timers.setTimeout(delay);
-  }
+  } while (Date.now() - startTime < timeout)
+
+  const msg = `Timeout of ${timeout} ms exceeded waiting for ${filePaths}`;
+  throw Error(msg);
 }
