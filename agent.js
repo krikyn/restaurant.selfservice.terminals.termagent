@@ -32,9 +32,7 @@ let client;
 let app;
 
 const remoteLogger = {
-  log: (s) => remoteLog(s, 'info'),
-  warn: (s) => remoteLog(s, 'warn'),
-  error: (s) => remoteLog(s, 'error'),
+  log: remoteLog,
 };
 
 async function updateSelf() {
@@ -70,7 +68,7 @@ async function main() {
         await handleMessage(msg.body)
         remoteLog(`Successfully executed command ${msg.body}`)
       } catch (e) {
-        remoteLog(`Failed to execute command ${msg.body}: ${e}`, 'error');
+        remoteLog(`Failed to execute command ${msg.body}: ${e}`, {level: 'error'});
       }
     })
     app.sendState();
@@ -135,7 +133,7 @@ async function handleMessage(msg) {
       break;
     case 'pilot':
       const {args, payload} = json
-      queuePilotTask(args, remoteLogger).then((result) => {
+      queuePilotTask(args, payload, remoteLogger).then((result) => {
         send('/app/pilotResult', JSON.stringify({
           payload,
           ...result
@@ -163,10 +161,18 @@ function send(destination, body) {
   }
 }
 
-function remoteLog(text, level = 'info') {
-  if (level === 'warn') {
+function remoteLog(text, params) {
+  if (!params) {
+    params = {level: 'info', sessionId: null, orderId: null}
+  }
+
+  if (!params.level) {
+    params.level = 'info'
+  }
+
+  if (params.level === 'warn') {
     console.warn(text)
-  } else if (level === 'error') {
+  } else if (params.level === 'error') {
     console.error(text)
   } else {
     console.log(text)
@@ -174,7 +180,7 @@ function remoteLog(text, level = 'info') {
 
   send('/app/log', JSON.stringify({
     text,
-    level
+    ...params
   }))
 }
 

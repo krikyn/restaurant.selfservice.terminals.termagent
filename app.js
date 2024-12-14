@@ -32,7 +32,7 @@ export default class App {
     try {
       await this.browser.close();
     } catch (e) {
-      this.remoteLogger.error(`Failed to close browser: ${e}`);
+      this.remoteLogger.log(`Failed to close browser: ${e}`, {level: 'error'});
     }
 
     this.browser = null
@@ -68,7 +68,7 @@ export default class App {
       this.page
         .on('console', message =>
           console.log(`PAGE: ${message.type().toUpperCase()} ${message.text()}`))
-        .on('pageerror', ({message}) => this.remoteLogger.warn(`PAGE: ${message}`))
+        .on('pageerror', ({message}) => this.remoteLogger.log(`PAGE: ${message}`, {level: 'warn'}))
         .on('requestfailed', request =>
           console.log(`PAGE: ${request.failure().errorText} ${request.url()}`))
         .on('close', this.close.bind(this))
