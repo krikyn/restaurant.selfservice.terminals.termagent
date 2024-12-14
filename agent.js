@@ -31,6 +31,12 @@ const rl = createInterface({
 let client;
 let app;
 
+const remoteLogger = {
+  log: (s) => remoteLog(s, 'info'),
+  warn: (s) => remoteLog(s, 'warn'),
+  error: (s) => remoteLog(s, 'error'),
+};
+
 async function updateSelf() {
   const updater = new AutoGitUpdate({
     repository: GIT_REPOSITORY,
@@ -60,11 +66,11 @@ async function main() {
     console.log('Connected')
     client.subscribe('/topic/commands', async (msg) => {
       try {
-        console.log('Received message: ' + msg.body)
+        remoteLog('Received message: ' + msg.body)
         await handleMessage(msg.body)
-        console.log('OK')
+        remoteLog(`Successfully executed command ${msg.body}`)
       } catch (e) {
-        console.error('Failed to execute command', e);
+        remoteLog(`Failed to execute command ${msg.body}: ${e}`, 'error');
       }
     })
     app.sendState();
@@ -85,9 +91,7 @@ async function main() {
   client.reconnect_delay = 5000;
   client.activate()
 
-  app = new App({
-    send
-  });
+  app = new App({send}, remoteLogger);
 
   if (SCANNER_ENABLED) {
     console.log('Starting scanner...')
@@ -131,7 +135,7 @@ async function handleMessage(msg) {
       break;
     case 'pilot':
       const {args, payload} = json
-      queuePilotTask(args).then((result) => {
+      queuePilotTask(args, remoteLogger).then((result) => {
         send('/app/pilotResult', JSON.stringify({
           payload,
           ...result
@@ -157,6 +161,21 @@ function send(destination, body) {
   } catch (e) {
     console.error(`Failed to send message ${JSON.stringify(body)} to destination ${destination}`)
   }
+}
+
+function remoteLog(text, level = 'info') {
+  if (level === 'warn') {
+    console.warn(text)
+  } else if (level === 'error') {
+    console.error(text)
+  } else {
+    console.log(text)
+  }
+
+  send('/app/log', {
+    text,
+    level
+  })
 }
 
 async function gracefulExit() {

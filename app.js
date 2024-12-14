@@ -14,8 +14,9 @@ export default class App {
     uptime: 0,
   };
 
-  constructor(sender) {
+  constructor(sender, remoteLogger) {
     this.sender = sender
+    this.remoteLogger = remoteLogger
   }
 
   init() {
@@ -31,7 +32,7 @@ export default class App {
     try {
       await this.browser.close();
     } catch (e) {
-      console.error('Failed to close browser', e);
+      this.remoteLogger.error(`Failed to close browser: ${e}`);
     }
 
     this.browser = null
@@ -40,8 +41,7 @@ export default class App {
 
     await this.sendState();
 
-    console.log('App closed');
-
+    this.remoteLogger.log('App closed');
   }
 
   async open() {
@@ -68,7 +68,7 @@ export default class App {
       this.page
         .on('console', message =>
           console.log(`PAGE: ${message.type().toUpperCase()} ${message.text()}`))
-        .on('pageerror', ({message}) => console.log(`PAGE: ${message}`))
+        .on('pageerror', ({message}) => this.remoteLogger.warn(`PAGE: ${message}`))
         .on('requestfailed', request =>
           console.log(`PAGE: ${request.failure().errorText} ${request.url()}`))
         .on('close', this.close.bind(this))
@@ -89,7 +89,7 @@ export default class App {
 
     await this.sendState();
 
-    console.log('App opened');
+    this.remoteLogger.log('App opened');
   }
 
   async refresh() {
@@ -101,7 +101,7 @@ export default class App {
     await this.page.goto(FRONTEND_URL);
     await this.sendState();
 
-    console.log('App refreshed');
+    this.remoteLogger.log('App refreshed');
   }
 
   // no throw
