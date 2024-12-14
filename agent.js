@@ -172,10 +172,10 @@ function remoteLog(text, level = 'info') {
     console.log(text)
   }
 
-  send('/app/log', {
+  send('/app/log', JSON.stringify({
     text,
     level
-  })
+  }))
 }
 
 async function gracefulExit() {
