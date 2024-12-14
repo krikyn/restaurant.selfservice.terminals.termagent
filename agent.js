@@ -114,7 +114,7 @@ async function main() {
 
   app.init();
   await app.open();
-  console.log('Agent started');
+  console.log('Agent started!');
 }
 
 async function handleMessage(msg) {
