@@ -11,7 +11,7 @@ export const PASSWORD = process.env.WS_PASSWORD || "test";
 export const UPDATE_INTERVAL = Number(process.env.UPDATE_INTERVAL || "3600000");
 export const GIT_REPOSITORY = process.env.GIT_REPOSITORY || "https://git.tchvrs.com/touchverse/termagent"
 export const GIT_BRANCH = process.env.GIT_BRANCH || "main"
-export const AGENT_DEBUG = !process.env.AGENT_DEBUG;
+export const AGENT_DEBUG = process.env.AGENT_DEBUG === 'true';
 export const PILOT_FOLDER_PATH = path.resolve(process.env.PILOT_FOLDER_PATH || ".");
 export const PILOT_EXECUTABLE_PATH = path.join(PILOT_FOLDER_PATH, "sb_pilot.exe");
 export const PILOT_E_FILE_PATH = path.join(PILOT_FOLDER_PATH, "e");

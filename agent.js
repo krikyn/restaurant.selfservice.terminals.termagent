@@ -3,6 +3,7 @@ import {Client} from '@stomp/stompjs'
 import {WebSocket} from 'ws';
 import os from "os";
 import AutoGitUpdate from 'auto-git-update';
+import screenshot from 'screenshot-desktop'
 
 import App from "./app.js";
 import {
@@ -16,7 +17,7 @@ import {
   SCANNER_PATH,
   UPDATE_INTERVAL
 } from "./consts.js";
-import {fetchToken} from "./api.js";
+import {fetchToken, sendScreenshot} from "./api.js";
 import {queuePilotTask} from "./pilot.js";
 import {ReadlineParser, SerialPort} from "serialport";
 
@@ -30,6 +31,7 @@ const rl = createInterface({
 
 let client;
 let app;
+let token;
 
 const remoteLogger = {
   log: remoteLog,
@@ -53,7 +55,7 @@ async function main() {
     setInterval(updateSelf, UPDATE_INTERVAL)
   }
 
-  const token = await fetchToken();
+  token = await fetchToken();
   const brokerURL = `${BASE_WS_URL}?token=${token}`;
 
   client = new Client({
@@ -130,6 +132,10 @@ async function handleMessage(msg) {
       break;
     case 'refresh':
       await app.refresh();
+      break;
+    case 'screenshot':
+      const data = await screenshot()
+      await sendScreenshot(new Blob([data]), token)
       break;
     case 'pilot':
       const {args, payload} = json

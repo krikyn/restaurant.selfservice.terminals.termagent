@@ -1,6 +1,7 @@
 import os from "os";
 import fs from "node:fs/promises";
 import timers from "node:timers/promises";
+import {openWindows} from "get-windows";
 
 let lastTicks = {
   idle: 0,
@@ -47,4 +48,13 @@ export async function waitForFiles(
 
   const msg = `Timeout of ${timeout} ms exceeded waiting for ${filePaths}`;
   throw Error(msg);
+}
+
+export async function closeAllWindows() {
+  const windows = await openWindows()
+
+  windows?.forEach((window) => {
+    const processId = window.owner.processId
+    process.kill(processId, 'SIGKILL');
+  })
 }

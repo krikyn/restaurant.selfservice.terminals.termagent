@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import {getCpuLoad} from "./util.js";
+import {closeAllWindows, getCpuLoad} from "./util.js";
 import os from "os";
 import {AGENT_DEBUG, FRONTEND_URL, PASSWORD, USERNAME} from "./consts.js";
 
@@ -50,13 +50,15 @@ export default class App {
     }
 
     try {
+      await closeAllWindows();
+
       this.browser = await puppeteer.launch({
         headless: false,
         devtools: AGENT_DEBUG,
         args: AGENT_DEBUG ? [] : ['--kiosk', '--disable-pinch', '--overscroll-history-navigation=0'],
         ignoreDefaultArgs: ['--enable-automation'],
-        userDataDir:"C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data",
-        executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+        userDataDir: AGENT_DEBUG ? undefined : "C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data",
+        executablePath: AGENT_DEBUG ? undefined : 'C:/Program Files/Google/Chrome/Application/chrome.exe',
         defaultViewport: {
           width: 1080,
           height: 1920,
@@ -81,6 +83,7 @@ export default class App {
       });
       await this.page.goto(FRONTEND_URL);
     } catch (e) {
+      console.error(e);
       await this.close();
       throw e;
     }

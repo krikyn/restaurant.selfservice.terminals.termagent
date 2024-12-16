@@ -18,3 +18,22 @@ export async function fetchToken() {
 
   return data.token;
 }
+
+export async function sendScreenshot(content, token) {
+  const formData = new FormData()
+  formData.append('image', content)
+
+  await api({
+    method: 'post',
+    url: '/api/agent/screenshot',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    params: {
+      token
+    },
+    timeout: 60000,
+    maxContentLength: Infinity
+  })
+}
